@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Todo List with Gemini</title>
+    <style>
+        body {
+    font-family: 'Inter', sans-serif;
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 20px;
+    background-color: #f0f4f8;
+    color: #333;
+}
+
+.container {
+    display: flex;
+    flex-direction: column;
+    gap: 25px;
+}
+
+.todo-container, .chat-container {
+    background: #ffffff;
+    border-radius: 12px;
+    padding: 20px 25px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+.todo-input-container, .input-container {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+.todo-input, #prompt-input {
+    flex-grow: 1;
+    padding: 12px;
+    border: 1px solid #d1d9e6;
+    border-radius: 8px;
+    font-size: 1rem;
+    transition: border-color 0.3s ease;
+}
+
+.todo-input:focus, #prompt-input:focus {
+    border-color: #007bff;
+    outline: none;
+}
+
+button {
+    padding: 12px 18px;
+    background: linear-gradient(135deg, #007bff, #0056b3);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 0.95rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background 0.3s ease;
+}
+
+button:hover {
+    background: linear-gradient(135deg, #0056b3, #003f8a);
+}
+
+.delete-btn {
+    background: #e63946;
+}
+
+.delete-btn:hover {
+    background: #c92334;
+}
+
+.edit-btn {
+    background: #38b000;
+}
+
+.edit-btn:hover {
+    background: #2d8600;
+}
+
+.todo-item {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 15px;
+    border-bottom: 1px solid #eef2f7;
+}
+
+.todo-item:last-child {
+    border-bottom: none;
+}
+
+.todo-item.urgent {
+    background: #ffe6e6;
+    border-left: 5px solid #e63946;
+}
+
+.todo-item.soon {
+    background: #fff8e6;
+    border-left: 5px solid #ff9500;
+}
+
+.todo-details {
+    flex-grow: 1;
+}
+
+.todo-text {
+    margin-bottom: 8px;
+    font-size: 1rem;
+    font-weight: 500;
+}
+
+.deadline {
+    font-size: 0.85rem;
+    color: #6c757d;
+}
+
+.message {
+    margin-bottom: 15px;
+    padding: 12px;
+    border-radius: 8px;
+    font-size: 0.95rem;
+}
+
+.prompt {
+    background: #e9ecef;
+}
+
+.response {
+    background: #f8f9fa;
+    white-space: pre-wrap;
+}
+
+.commands {
+    background: #f8f9fa;
+    padding: 12px;
+    border-radius: 8px;
+    margin-bottom: 12px;
+    font-size: 0.9rem;
+    color: #495057;
+}
+
+.edit-mode {
+    background: #f8f9fa;
+    padding: 10px;
+    border: 1px dashed #d1d9e6;
+    border-radius: 8px;
+}
+
+.edit-form {
+    display: flex;
+    gap: 10px;
+    width: 100%;
+}
+
+.edit-input {
+    flex-grow: 1;
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+}
+
+.button-group {
+    display: flex;
+    gap: 8px;
+}
+
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Todo List Section -->
+        <div class="todo-container">
+            <h1>Smart Todo List</h1>
+            <div class="commands">
+                <strong>Try these Gemini commands:</strong>
+                <ul>
+                    <li>"Add a task to call mom tomorrow at 3pm"</li>
+                    <li>"Edit task 2 to be due next Monday"</li>
+                    <li>"Remove task 3"</li>
+                    <li>"What are my urgent tasks?"</li>
+                </ul>
+            </div>
+            <div class="todo-input-container">
+                <input type="text" class="todo-input" placeholder="Add task...">
+                <input type="datetime-local" id="deadline-input">
+                <button onclick="addTodo()">Add</button>
+            </div>
+            <div id="todo-list"></div>
+        </div>
+
+        <!-- Gemini Chat Section -->
+        <div class="chat-container">
+            <h1>Gemini Assistant</h1>
+            <div class="input-container">
+                <input type="text" id="prompt-input" placeholder="Ask Gemini to manage your tasks...">
+                <button onclick="sendPrompt()">Send</button>
+            </div>
+            <div id="chat-history"></div>
+        </div>
+    </div>
+
+    <script>
+        let todos = [];
+        
+        function formatDate(dateString) {
+            if (!dateString) return '';
+            const date = new Date(dateString);
+            return date.toLocaleString('en-GB', {
+                day: '2-digit',
+                month: '2-digit',
+                year: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit',
+                hour12: false
+            }).replace(',', '');
+        }
+        
+        function addTodo(text, deadline) {
+            const input = document.querySelector('.todo-input');
+            const deadlineInput = document.querySelector('#deadline-input');
+            
+            const todoText = text || input.value.trim();
+            const todoDeadline = deadline || deadlineInput.value;
+            
+            if (todoText) {
+                todos.push({
+                    id: Date.now(),
+                    text: todoText,
+                    deadline: todoDeadline,
+                    isEditing: false
+                });
+                input.value = '';
+                deadlineInput.value = '';
+                sortTodos();
+                renderTodos();
+            }
+        }
+
+        function sortTodos() {
+            todos.sort((a, b) => {
+                if (!a.deadline) return 1;
+                if (!b.deadline) return -1;
+                return new Date(a.deadline) - new Date(b.deadline);
+            });
+        }
+
+        function getUrgencyClass(deadline) {
+            if (!deadline) return '';
+            const now = new Date();
+            const taskDate = new Date(deadline);
+            const diffHours = (taskDate - now) / (1000 * 60 * 60);
+            
+            if (diffHours < 24) return 'urgent';
+            if (diffHours < 72) return 'soon';
+            return '';
+        }
+
+        function toggleEdit(id) {
+            todos = todos.map(todo => ({
+                ...todo,
+                isEditing: todo.id === id ? !todo.isEditing : false
+            }));
+            renderTodos();
+        }
+
+        function saveEdit(id) {
+            const todoItem = document.querySelector(`#todo-${id}`);
+            const newText = todoItem.querySelector('.edit-input').value;
+            const newDeadline = todoItem.querySelector('.edit-deadline').value;
+            
+            if (newText.trim()) {
+                editTodo(id, newText, newDeadline);
+            }
+        }
+
+        function deleteTodo(id) {
+            todos = todos.filter(todo => todo.id !== id);
+            renderTodos();
+        }
+
+        function editTodo(id, newText, newDeadline) {
+            todos = todos.map(todo => 
+                todo.id === id 
+                    ? { ...todo, text: newText || todo.text, deadline: newDeadline || todo.deadline, isEditing: false }
+                    : todo
+            );
+            sortTodos();
+            renderTodos();
+        }
+
+        function renderTodos() {
+            const todoList = document.getElementById('todo-list');
+            todoList.innerHTML = '';
+            
+            todos.forEach((todo, index) => {
+                const div = document.createElement('div');
+                div.id = `todo-${todo.id}`;
+                div.className = `todo-item ${getUrgencyClass(todo.deadline)} ${todo.isEditing ? 'edit-mode' : ''}`;
+                
+                if (todo.isEditing) {
+                    // Edit mode
+                    const editForm = document.createElement('div');
+                    editForm.className = 'edit-form';
+                    
+                    editForm.innerHTML = `
+                        <input type="text" class="edit-input" value="${todo.text}">
+                        <input type="datetime-local" class="edit-deadline" value="${todo.deadline}">
+                        <div class="button-group">
+                            <button onclick="saveEdit(${todo.id})" class="edit-btn">Save</button>
+                            <button onclick="toggleEdit(${todo.id})" class="delete-btn">Cancel</button>
+                        </div>
+                    `;
+                    
+                    div.appendChild(editForm);
+                } else {
+                    // View mode
+                    const detailsDiv = document.createElement('div');
+                    detailsDiv.className = 'todo-details';
+                    
+                    const textDiv = document.createElement('div');
+                    textDiv.className = 'todo-text';
+                    textDiv.textContent = `${index + 1}. ${todo.text}`;
+                    
+                    const deadlineDiv = document.createElement('div');
+                    deadlineDiv.className = 'deadline';
+                    if (todo.deadline) {
+                        deadlineDiv.textContent = `Due: ${formatDate(todo.deadline)}`;
+                    }
+                    
+                    detailsDiv.appendChild(textDiv);
+                    detailsDiv.appendChild(deadlineDiv);
+                    div.appendChild(detailsDiv);
+
+                    const buttonGroup = document.createElement('div');
+                    buttonGroup.className = 'button-group';
+
+                    const editBtn = document.createElement('button');
+                    editBtn.className = 'edit-btn';
+                    editBtn.textContent = 'Edit';
+                    editBtn.onclick = () => toggleEdit(todo.id);
+
+                    const deleteBtn = document.createElement('button');
+                    deleteBtn.className = 'delete-btn';
+                    deleteBtn.textContent = 'Delete';
+                    deleteBtn.onclick = () => deleteTodo(todo.id);
+
+                    buttonGroup.appendChild(editBtn);
+                    buttonGroup.appendChild(deleteBtn);
+                    div.appendChild(buttonGroup);
+                }
+                
+                todoList.appendChild(div);
+            });
+        }
+
+        async function processGeminiCommand(prompt) {
+            try {
+                const response = await fetch('/generate', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        prompt: `Given this todo list: ${JSON.stringify(todos)}\n\nUser command: ${prompt}\n\nRespond with a JSON object containing:\n{action: 'add'|'edit'|'delete'|'info', taskId?: number, text?: string, deadline?: string, response: string}`
+                    })
+                });
+
+                const data = await response.json();
+                try {
+                    const result = JSON.parse(data.response);
+                    
+                    switch(result.action) {
+                        case 'add':
+                            addTodo(result.text, result.deadline);
+                            break;
+                        case 'edit':
+                            editTodo(result.taskId, result.text, result.deadline);
+                            break;
+                        case 'delete':
+                            deleteTodo(result.taskId);
+                            break;
+                    }
+                    
+                    return result.response;
+                } catch (e) {
+                    return data.response;
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                return 'Sorry, I encountered an error processing your request.';
+            }
+        }
+
+        async function sendPrompt() {
+            const promptInput = document.getElementById('prompt-input');
+            const chatHistory = document.getElementById('chat-history');
+            const prompt = promptInput.value;
+            
+            if (!prompt) return;
+
+            chatHistory.innerHTML += `<div class="message prompt"><strong>You:</strong> ${prompt}</div>`;
+            promptInput.value = '';
+
+            const response = await processGeminiCommand(prompt);
+            chatHistory.innerHTML += `<div class="message response"><strong>Gemini:</strong> ${response}</div>`;
+            chatHistory.scrollTop = chatHistory.scrollHeight;
+        }
+
+        // Event Listeners
+        document.querySelector('.todo-input').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') addTodo();
+        });
+
+        document.getElementById('prompt-input').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') sendPrompt();
+        });
+
+        // Initialize
+        renderTodos();
+    </script>
+</body>
+</html>
