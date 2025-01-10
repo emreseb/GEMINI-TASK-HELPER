@@ -1,0 +1,184 @@
+/* General Styles */
+body {
+    font-family: 'Inter', sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #181818;
+    color: #fff;
+}
+
+/* Chat Container */
+.chat-container {
+    background: #242424;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+    width: 100%;
+    max-width: 800px;
+    height: 600px;
+    overflow-y: auto;
+    margin: 20px auto;
+}
+
+/* Chat History */
+.chat-history {
+    height: 500px; /* Set height for chat history */
+    overflow-y: auto; /* Allow scrolling */
+    margin-bottom: 10px;
+}
+
+/* Input Container */
+.input-container {
+    display: flex;
+    gap: 10px;
+}
+
+/* Input Field */
+#prompt-input {
+    flex-grow: 1;
+    padding: 10px;
+    border: 1px solid #444;
+    border-radius: 5px;
+    background: #181818;
+    color: #fff;
+}
+
+/* Send Button */
+button {
+    padding: 10px 15px;
+    background: #505050;
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background 0.3s ease;
+}
+
+button:hover {
+    background: #606060;
+}
+
+/* Message Styles */
+.message {
+    margin: 10px 0;
+}
+
+.message.prompt {
+    text-align: right;
+}
+
+.message.response {
+    text-align: left;
+}
+
+/* Navigation Bar */
+.navbar {
+    background-color: #242424;
+    padding: 10px 20px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+}
+
+.navbar-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.logo {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: #fff;
+    text-decoration: none;
+}
+
+.nav-links {
+    display: flex;
+    gap: 15px;
+}
+
+.nav-button {
+    color: #fff;
+    text-decoration: none;
+    padding: 8px 12px;
+    border-radius: 5px;
+    transition: background-color 0.3s ease;
+}
+
+.nav-button:hover {
+    background-color: #343434;
+}
+
+.nav-button.active {
+    background-color: #505050;
+}
+
+/* Todo Container */
+.todo-container {
+    background: #242424;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+}
+
+.todo-input-container {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.todo-input {
+    flex-grow: 1;
+    padding: 10px;
+    border: 1px solid #444;
+    border-radius: 5px;
+    background: #181818;
+    color: #fff;
+}
+
+button {
+    padding: 10px 15px;
+    background: #505050;
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background 0.3s ease;
+}
+
+button:hover {
+    background: #606060;
+}
+
+/* Animations */
+@keyframes slideIn {
+    from {
+        transform: translateX(-100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+@keyframes slideOut {
+    from {
+        transform: translateX(0);
+        opacity: 1;
+    }
+    to {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+}
+
+.todo-item {
+    animation: slideIn 0.3s ease-out;
+}
+
+.todo-item.removing {
+    animation: slideOut 0.3s ease-out;
+}

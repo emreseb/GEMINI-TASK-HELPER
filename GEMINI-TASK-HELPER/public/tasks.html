@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="styles.css">
+    <title>Tasks</title>
+</head>
+<body>
+    <!-- Navigation Bar -->
+    <nav class="navbar">
+        <div class="navbar-container">
+            <a href="index.html" class="logo">Task Manager</a>
+            <div class="nav-links">
+                <a href="tasks.html" class="nav-button active">Tasks</a>
+                <a href="chat.html" class="nav-button">Chat</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Todo Container -->
+    <div class="container">
+        <div class="todo-container">
+            <h1>Todo List</h1>
+            <div class="todo-input-container">
+                <input type="text" class="todo-input" placeholder="Add a task...">
+                <button onclick="addTodo()">Add Task</button>
+            </div>
+            <div id="todo-list"></div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
